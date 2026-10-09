@@ -1,0 +1,21 @@
+[application]
+name = "RasterDrop"
+default_platform = "desktop"
+asset_dir = "assets"
+
+[web.app]
+title = "RasterDrop"
+
+[bundle]
+identifier = "com.example.rasterdrop"
+publisher = "REPLACE_ME"
+icon = ["assets/icon.png", "assets/icon.icns", "assets/icon.ico"]
+category = "Utility"
+short_description = "Fast local image conversion"
+long_description = "Convert HEIC, HEIF, JPEG, PNG, WebP, TIFF, BMP, and AVIF images entirely on your device."
+
+[bundle.macos]
+minimum_system_version = "12.0"
+
+[bundle.windows]
+webview_install_mode = { DownloadBootstrapper = { silent = true } }
