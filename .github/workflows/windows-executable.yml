@@ -21,6 +21,8 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - name: Configure native dependencies
         shell: pwsh
         run: |
@@ -32,6 +34,23 @@ jobs:
           & "$env:VCPKG_INSTALLATION_ROOT\bootstrap-vcpkg.bat" -disableMetrics
           if ($LASTEXITCODE -ne 0) { throw "Failed to bootstrap vcpkg" }
           "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+      - name: Restore native library cache
+        id: native-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.VCPKG_ROOT }}/installed
+          key: windows-x64-native-${{ hashFiles('vcpkg.json') }}
+      - name: Build native image codecs
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows-static-md "--x-install-root=$env:VCPKG_ROOT\installed"
+          if ($LASTEXITCODE -ne 0) { throw "Native codec build failed" }
+      - name: Save native library cache
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.VCPKG_ROOT }}/installed
+          key: windows-x64-native-${{ hashFiles('vcpkg.json') }}
       - name: Check formatting
         run: cargo fmt --check
       - name: Build and test Windows executable

@@ -23,8 +23,16 @@ if ($ExecutableOnly) {
     $ArtifactDir = Join-Path $Root "artifacts/windows-x64"
     New-Item -ItemType Directory -Force $ArtifactDir | Out-Null
     Copy-Item "target/release/raster-drop.exe" (Join-Path $ArtifactDir "RasterDrop.exe") -Force
+    # Bundle the C++ runtime used by the static-md native image codecs.
+    $VsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $VsRoot = & $VsWhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    if ($LASTEXITCODE -ne 0 -or -not $VsRoot) { throw "Could not locate Visual C++ runtime" }
+    $CrtDir = Get-ChildItem "$VsRoot\VC\Redist\MSVC\*\x64\Microsoft.VC*.CRT" -Directory |
+        Sort-Object FullName -Descending | Select-Object -First 1
+    if (-not $CrtDir) { throw "Could not locate redistributable x64 C++ runtime" }
+    Copy-Item (Join-Path $CrtDir.FullName "*.dll") $ArtifactDir -Force
     Copy-Item "LICENSE", "THIRD_PARTY_NOTICES.md" $ArtifactDir -Force
-    "RasterDrop 0.1.1 for Windows 10/11 x64. Run RasterDrop.exe. Microsoft Edge WebView2 Runtime must be installed (normally present on Windows 11). Images are converted locally." | Set-Content (Join-Path $ArtifactDir "README.txt")
+    "RasterDrop 0.1.1 for Windows 10/11 x64. Keep the included DLL files beside RasterDrop.exe and run RasterDrop.exe. Microsoft Edge WebView2 Runtime must be installed (normally present on Windows 11). Images are converted locally." | Set-Content (Join-Path $ArtifactDir "README.txt")
     Write-Host "Built Windows executable: $ArtifactDir/RasterDrop.exe"
     exit 0
 }

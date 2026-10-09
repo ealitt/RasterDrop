@@ -20,7 +20,7 @@ path = "src/main.rs"
 async-channel = "2.5"
 directories = "6.0"
 dioxus = { version = "=0.7.9", default-features = false, features = ["minimal"] }
-dioxus-desktop = { version = "=0.7.9", default-features = false, features = ["tokio_runtime"] }
+dioxus-desktop = { version = "=0.7.9", default-features = false, features = ["tokio_runtime", "devtools"] }
 image = { version = "0.25.10", default-features = false, features = ["avif", "bmp", "jpeg", "png", "tiff", "webp"] }
 kamadak-exif = "0.6"
 libheif-rs = { version = "=2.7.0", default-features = false, features = ["v1_21", "image"] }
