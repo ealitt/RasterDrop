@@ -1,0 +1,44 @@
+name: Windows executable
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/windows-executable']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows-static-md
+      VCPKGRS_TRIPLET: x64-windows-static-md
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Configure native dependencies
+        shell: pwsh
+        run: |
+          $baseline = (Get-Content vcpkg.json | ConvertFrom-Json)."builtin-baseline"
+          git -C $env:VCPKG_INSTALLATION_ROOT fetch origin $baseline --depth 1
+          if ($LASTEXITCODE -ne 0) { throw "Failed to fetch vcpkg baseline" }
+          git -C $env:VCPKG_INSTALLATION_ROOT checkout $baseline
+          if ($LASTEXITCODE -ne 0) { throw "Failed to select vcpkg baseline" }
+          & "$env:VCPKG_INSTALLATION_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+          if ($LASTEXITCODE -ne 0) { throw "Failed to bootstrap vcpkg" }
+          "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+      - name: Check formatting
+        run: cargo fmt --check
+      - name: Build and test Windows executable
+        shell: pwsh
+        run: ./scripts/build-windows.ps1 -ExecutableOnly
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RasterDrop-0.1.1-windows-x64
+          path: artifacts/windows-x64/
+          if-no-files-found: error

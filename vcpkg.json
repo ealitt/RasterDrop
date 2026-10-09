@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "rasterdrop-native-dependencies",
+  "version-string": "0.1.1",
+  "builtin-baseline": "b30c88338f4ec47a322a81f4113d7385702e03a7",
+  "dependencies": [
+    {
+      "name": "libheif",
+      "default-features": false,
+      "features": [
+        "aom"
+      ]
+    }
+  ]
+}

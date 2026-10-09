@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="RasterDrop">
+  <rect width="1024" height="1024" rx="224" fill="#4f6f52"/>
+  <path d="M0 764c174-69 296-75 452-26 162 51 314 42 572-66v352H0Z" fill="#3b5b42"/>
+  <rect x="194" y="205" width="636" height="498" rx="82" fill="#fbf6e9"/>
+  <rect x="240" y="251" width="544" height="332" rx="48" fill="#dfe8d8"/>
+  <circle cx="389" cy="370" r="56" fill="#a28a58"/>
+  <path d="m274 550 159-157 118 113 81-77 118 121Z" fill="#789166"/>
+  <path d="m274 550 159-157 118 113-25 77H274Z" fill="#4d6c4f"/>
+  <circle cx="512" cy="746" r="94" fill="#3b5b42"/>
+  <path d="M490 678h44v70l36-36 30 30-88 88-88-88 30-30 36 36Z" fill="#fbf6e9"/>
+</svg>
