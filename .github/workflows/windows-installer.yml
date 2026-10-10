@@ -1,0 +1,50 @@
+name: Windows installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release to package
+        required: true
+        default: v0.1.1
+  push:
+    branches: ['codex/windows-installer']
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'v0.1.1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify existing release
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+$') { throw "Invalid release tag" }
+          $Version = $env:RELEASE_TAG.Substring(1)
+          $Name = "RasterDrop-$Version-windows-x64.zip"
+          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern $Name --dir artifacts/installer-input
+          if ($LASTEXITCODE -ne 0) { throw "Release download failed" }
+          $Release = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$env:RELEASE_TAG" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw "Release metadata lookup failed" }
+          $Asset = $Release.assets | Where-Object name -eq $Name
+          $Hash = (Get-FileHash "artifacts/installer-input/$Name").Hash.ToLowerInvariant()
+          if ($Asset.digest -ne "sha256:$Hash") { throw "Release package digest mismatch" }
+          Expand-Archive "artifacts/installer-input/$Name" artifacts/installer-input/payload
+          "INSTALLER_VERSION=$Version" >> $env:GITHUB_ENV
+      - name: Package installer
+        shell: pwsh
+        run: ./scripts/package-windows-installer.ps1 -PackageDirectory artifacts/installer-input/payload -Version $env:INSTALLER_VERSION
+      - name: Install, launch, reinstall, and uninstall
+        shell: pwsh
+        run: ./scripts/test-windows-installer.ps1 -Installer "artifacts/windows-installer/RasterDrop-$env:INSTALLER_VERSION-windows-x64-setup.exe" -PackageDirectory artifacts/installer-input/payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RasterDrop-windows-installer
+          path: artifacts/windows-installer/
+          if-no-files-found: error

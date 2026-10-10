@@ -99,6 +99,14 @@ Use hardened runtime (`--options runtime`). Sign nested dylibs before the app. A
 
 ## Windows installer
 
+Release EXE installers are packaged from the verified Windows ZIP using the `Windows installer` GitHub Actions workflow. The installer adds Start menu shortcuts and an uninstaller, bundles the C++ runtime DLLs, and installs WebView2 when it is missing (internet access is needed for that prerequisite). Run the workflow with the existing release tag to package a release without recompiling the app.
+
+On a Windows machine with Inno Setup 6.3+ installed, an extracted release ZIP can also be packaged locally:
+
+```powershell
+.\scripts\package-windows-installer.ps1 -PackageDirectory path\to\extracted-release -Version 0.1.1
+```
+
 To build only a Windows x64 executable on a Windows machine with the prerequisites above:
 
 ```powershell
