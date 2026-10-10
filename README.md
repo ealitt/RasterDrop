@@ -4,6 +4,75 @@ A compact cross-platform Dioxus Desktop utility for converting images locally. I
 
 > **Branding placeholders:** replace `com.example.rasterdrop`, `REPLACE_ME`, and the files under `assets/icon.*` before distribution.
 
+## Index
+
+- [Download and install](#download-and-install)
+- [macOS: Gatekeeper and quarantine](#macos-gatekeeper-and-quarantine)
+- [Windows: SmartScreen and blocked downloads](#windows-smartscreen-and-blocked-downloads)
+- [Features](#features)
+- [Development prerequisites](#development-prerequisites)
+- [Run in development](#run-in-development)
+- [Tests and quality gates](#tests-and-quality-gates)
+- [Build a macOS bundle and DMG](#macos-bundle-and-dmg)
+- [Build a Windows installer](#windows-installer)
+- [Data and privacy](#data-and-privacy)
+
+## Download and install
+
+Download packages from [GitHub Releases](https://github.com/ealitt/RasterDrop/releases). Version 0.1.1 provides:
+
+- **Mac (Apple Silicon):** open `RasterDrop-0.1.1-macos-arm64.dmg`, drag `RasterDrop.app` into Applications, then open it. This release package does not support Intel Macs.
+- **Windows 10/11 x64:** run `RasterDrop-0.1.1-windows-x64-setup.exe` and follow the installer. It installs for your user, adds Start menu shortcuts and an uninstaller, and installs WebView2 if missing (internet access is needed for that prerequisite). The ZIP is also available for portable use; keep its bundled DLLs beside the executable.
+
+The Mac package is ad-hoc signed and not notarized; the Windows installer is unsigned. This can trigger security warnings. Only override a warning for a download you trust from this repository's releases. Each release includes `SHA256SUMS.txt` to check download integrity; a matching checksum does not independently establish that software is safe.
+
+### macOS: Gatekeeper and quarantine
+
+For a trusted download blocked because Apple cannot verify the developer or check the app, open Terminal and remove **only the quarantine attribute** from the downloaded DMG:
+
+```bash
+xattr -d com.apple.quarantine "$HOME/Downloads/RasterDrop-0.1.1-macos-arm64.dmg"
+open "$HOME/Downloads/RasterDrop-0.1.1-macos-arm64.dmg"
+```
+
+Drag the app into Applications. If the copied app is still blocked, remove the same attribute from that app bundle and its contents:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/RasterDrop.app"
+open "/Applications/RasterDrop.app"
+```
+
+Adjust the paths if you downloaded or installed elsewhere. Removing quarantine from the DMG does not clear it from an app you already copied. These commands do not add a Developer ID signature or notarization. Use `-d` rather than `-c`, which clears all extended attributes.
+
+To optionally inspect the downloaded DMG's attributes:
+
+```bash
+xattr -l "$HOME/Downloads/RasterDrop-0.1.1-macos-arm64.dmg"
+```
+
+If `com.apple.quarantine` is absent, it has been removed. A “No such xattr” message from the removal command means the attribute was already absent.
+
+**Alternative without Terminal:** try opening the app and dismiss the warning, then open **System Settings → Privacy & Security → Open Anyway**. Authenticate and confirm opening the app. See [Apple's Gatekeeper guidance](https://support.apple.com/en-us/102445). On macOS 12, use **System Preferences → Security & Privacy → General** instead.
+
+For a warning that explicitly identifies malware or a damaged/tampered app, check the download and contact the maintainer before attempting an override.
+
+### Windows: SmartScreen and blocked downloads
+
+Windows has a similar download-origin marker, called **Mark of the Web**, and Microsoft Defender SmartScreen can warn about an unsigned or unfamiliar installer. If you see **“Windows protected your PC”** for the trusted release installer, select **More info → Run anyway**, when that option is available.
+
+To remove the download block for this specific installer, right-click it in File Explorer, choose **Properties → General**, select **Unblock** if shown, then **Apply → OK**. The equivalent PowerShell commands are:
+
+```powershell
+Unblock-File -LiteralPath "$env:USERPROFILE\Downloads\RasterDrop-0.1.1-windows-x64-setup.exe"
+Start-Process -FilePath "$env:USERPROFILE\Downloads\RasterDrop-0.1.1-windows-x64-setup.exe"
+```
+
+Adjust the path for your Downloads folder. [Microsoft's Unblock-File documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file) explains that this removes the `Zone.Identifier` download marker. It does not sign the installer, certify its safety, or restore a file quarantined by antivirus.
+
+**If Microsoft Defender Antivirus removes or quarantines the file:** open **Windows Security → Virus & threat protection → Protection history** and inspect the detection. Treat this separately from a SmartScreen reputation warning; verify the source and checksum and report unexpected detections to the maintainer. See [Microsoft's Protection history guidance](https://support.microsoft.com/en-us/windows/security/windows-security/protection-history-in-the-windows-security-app). Do not disable Defender or add broad exclusions to install RasterDrop.
+
+Smart App Control or organizational policy may block an unsigned installer without offering **Run anyway**. File unblocking does not override every policy; contact your administrator or use a signed release when available. [Microsoft's Smart App Control FAQ](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions) explains its restrictions.
+
 ## Features
 
 - Content-based detection for HEIC/HEIF, JPEG, PNG, WebP, TIFF, BMP, and AVIF.
